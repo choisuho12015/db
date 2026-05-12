@@ -7,12 +7,12 @@ import com.market.member.UserInIt;
 import java.awt.event.ActionEvent;
 
 public class CartShippingPage extends JPanel {
-
 	Cart mCart;
 	JPanel shippingPanel;
 	JPanel radioPanel;
 
 	public CartShippingPage(JPanel panel, Cart cart) {
+		this.mCart = cart;
 		Font ft = new Font("함초롬돋움", Font.BOLD, 15);
 		setLayout(null);
 
@@ -39,33 +39,26 @@ public class CartShippingPage extends JPanel {
 		shippingPanel.setLayout(null);
 		add(shippingPanel);
 
-		this.mCart = cart;
-		
 		radioOk.setSelected(true);
-		radioNo.setSelected(false);
 		UserShippingInfo(true);
 
-		radioOk.addActionListener(new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				if (radioOk.isSelected()) {
-					shippingPanel.removeAll();
-					UserShippingInfo(true);
-					shippingPanel.revalidate();
-					shippingPanel.repaint();
-					radioNo.setSelected(false);
-				}
+		radioOk.addActionListener(e -> {
+			if (radioOk.isSelected()) {
+				radioNo.setSelected(false);
+				shippingPanel.removeAll();
+				UserShippingInfo(true);
+				shippingPanel.revalidate();
+				shippingPanel.repaint();
 			}
 		});
 
-		radioNo.addActionListener(new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				if (radioNo.isSelected()) {
-					shippingPanel.removeAll();
-					UserShippingInfo(false);
-					shippingPanel.revalidate();
-					shippingPanel.repaint();
-					radioOk.setSelected(false);
-				}
+		radioNo.addActionListener(e -> {
+			if (radioNo.isSelected()) {
+				radioOk.setSelected(false);
+				shippingPanel.removeAll();
+				UserShippingInfo(false);
+				shippingPanel.revalidate();
+				shippingPanel.repaint();
 			}
 		});
 	}
@@ -76,105 +69,60 @@ public class CartShippingPage extends JPanel {
 		// 고객명
 		JPanel namePanel = new JPanel();
 		namePanel.setBounds(0, 30, 700, 50);
-		JLabel nameLabel = new JLabel("고객명 : ");
-		nameLabel.setFont(ft);
-		namePanel.add(nameLabel);
-		JTextField nameLabel2 = new JTextField(15);
-		nameLabel2.setFont(ft);
-		if (select) {
-			nameLabel2.setBackground(Color.LIGHT_GRAY);
-			nameLabel2.setText(UserInIt.getmUser().getName());
+		namePanel.add(new JLabel("고객명 : "));
+		JTextField nameText = new JTextField(15);
+		if (select && UserInIt.getmUser() != null) {
+			nameText.setText(UserInIt.getmUser().getName());
+			nameText.setBackground(Color.LIGHT_GRAY);
 		}
-		namePanel.add(nameLabel2);
+		namePanel.add(nameText);
 		shippingPanel.add(namePanel);
 
 		// 연락처
 		JPanel phonePanel = new JPanel();
 		phonePanel.setBounds(0, 80, 700, 50);
-		JLabel phoneLabel = new JLabel("연락처 : ");
-		phoneLabel.setFont(ft);
-		phonePanel.add(phoneLabel);
-		JTextField phoneLabel2 = new JTextField(15);
-		phoneLabel2.setFont(ft);
-		if (select) {
-			phoneLabel2.setBackground(Color.LIGHT_GRAY);
-			phoneLabel2.setText(String.valueOf(UserInIt.getmUser().getPhone()));
+		phonePanel.add(new JLabel("연락처 : "));
+		JTextField phoneText = new JTextField(15);
+		if (select && UserInIt.getmUser() != null) {
+			phoneText.setText(UserInIt.getmUser().getPhone());
+			phoneText.setBackground(Color.LIGHT_GRAY);
 		}
-		phonePanel.add(phoneLabel2);
+		phonePanel.add(phoneText);
 		shippingPanel.add(phonePanel);
 
 		// 배송지
 		JPanel addressPanel = new JPanel();
 		addressPanel.setBounds(0, 130, 700, 50);
-		JLabel label = new JLabel("배송지 : ");
-		label.setFont(ft);
-		addressPanel.add(label);
+		addressPanel.add(new JLabel("배송지 : "));
 		JTextField addressText = new JTextField(15);
-		addressText.setFont(ft);
 		addressPanel.add(addressText);
 		shippingPanel.add(addressPanel);
 
-		// --- 쿠폰 영역 ---
-		JPanel couponPanel = new JPanel();
-		couponPanel.setBounds(0, 190, 700, 50);
-		JLabel couponLabel = new JLabel("혜택 : ");
-		couponLabel.setFont(ft);
-		couponPanel.add(couponLabel);
-		JButton couponButton = new JButton("10% 할인 쿠폰 적용");
-		couponButton.setFont(ft);
-		JLabel discountLabel = new JLabel("할인액: 0원");
-		discountLabel.setFont(ft);
-		discountLabel.setForeground(Color.RED);
-		couponPanel.add(couponButton);
-		couponPanel.add(discountLabel);
-		shippingPanel.add(couponPanel);
-
-		// --- 금액 표시 영역 ---
+		// 최종 금액 및 주문 버튼
+		int initialTotal = mCart.getTotalPrice();
+		final int[] finalPrice = {initialTotal}; 
+		
 		JPanel totalAmountPanel = new JPanel();
 		totalAmountPanel.setBounds(0, 240, 700, 50);
-		int initialTotal = mCart.getTotalPrice(); // Cart 클래스에서 새로 만든 메서드 호출
-		final int[] finalPrice = {initialTotal}; // 할인된 금액 저장용 배열
-		
 		JLabel totalLabel = new JLabel("최종 결제 금액 : " + initialTotal + "원");
 		totalLabel.setFont(new Font("함초롬돋움", Font.BOLD, 18));
 		totalAmountPanel.add(totalLabel);
 		shippingPanel.add(totalAmountPanel);
 
-		// 쿠폰 이벤트
-		couponButton.addActionListener(new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-				int discount = (int) (initialTotal * 0.1);
-				finalPrice[0] = initialTotal - discount;
-				discountLabel.setText("할인액: -" + discount + "원");
-				totalLabel.setText("최종 결제 금액 : " + finalPrice[0] + "원");
-				JOptionPane.showMessageDialog(null, "쿠폰이 적용되었습니다!");
-				couponButton.setEnabled(false);
-			}
-		});
-
-		// 주문 완료 버튼
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setBounds(0, 320, 700, 100);
 		JButton orderButton = new JButton("주문완료");
 		orderButton.setFont(ft);
-		buttonPanel.add(orderButton);
-		shippingPanel.add(buttonPanel);
+		orderButton.setBounds(300, 320, 100, 30);
+		shippingPanel.add(orderButton);
 
-		orderButton.addActionListener(new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
+		orderButton.addActionListener(e -> {
+			if (UserInIt.getmUser() != null) {
 				UserInIt.getmUser().setAddress(addressText.getText());
-				radioPanel.removeAll();
-				radioPanel.revalidate();
-				radioPanel.repaint();
-				
-				shippingPanel.removeAll();
-				// 영수증 페이지로 이동
-				shippingPanel.add("주문 배송지", new CartOrderBillPage(shippingPanel, mCart, finalPrice[0]));
-				
-				mCart.deleteBook(); // 주문 완료 후 장바구니 비우기
-				shippingPanel.revalidate();
-				shippingPanel.repaint();
 			}
+			shippingPanel.removeAll();
+			shippingPanel.add(new CartOrderBillPage(shippingPanel, mCart, finalPrice[0]));
+			mCart.deleteBook(); 
+			shippingPanel.revalidate();
+			shippingPanel.repaint();
 		});
 	}
 }
