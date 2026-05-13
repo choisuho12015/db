@@ -19,7 +19,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.market.member.UserInIt;
-import com.market.database.DBConnection; // ✅ 추가
 
 public class GuestWindow extends JFrame {
 
@@ -83,12 +82,13 @@ public class GuestWindow extends JFrame {
     private void handleGoogleLogin() throws Exception {
         File file = new File("src/client_secrets.json");
         if (!file.exists()) {
-            throw new RuntimeException("client_secrets.json 파일을 찾을 수 없습니다.");
+            throw new RuntimeException("client_secrets.json 파일을 찾을 수 없습니다. 경로: " + file.getAbsolutePath());
         }
 
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
                 GsonFactory.getDefaultInstance(), new FileReader(file));
 
+        // ✅ profile 스코프 추가 (이름 가져오기 위해)
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),
                 GsonFactory.getDefaultInstance(),
@@ -104,6 +104,7 @@ public class GuestWindow extends JFrame {
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 
         if (credential.getAccessToken() != null) {
+            // ✅ 구글 userinfo API 호출
             URL url = new URL("https://www.googleapis.com/oauth2/v2/userinfo");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("Authorization", "Bearer " + credential.getAccessToken());
@@ -113,15 +114,14 @@ public class GuestWindow extends JFrame {
             while (scanner.hasNext()) response.append(scanner.nextLine());
             scanner.close();
 
+            // ✅ JSON에서 name, email 파싱
             String json = response.toString();
             String name  = json.replaceAll(".*\"name\"\\s*:\\s*\"([^\"]+)\".*", "$1");
             String email = json.replaceAll(".*\"email\"\\s*:\\s*\"([^\"]+)\".*", "$1");
 
-            // ✅ [수정] DB에 고객 정보 저장
-            DBConnection.insertMember(name, email);
+            JOptionPane.showMessageDialog(this, "구글 인증에 성공했습니다!\n이름: " + name + "\n이메일: " + email);
 
-            JOptionPane.showMessageDialog(this, "구글 인증 및 DB 저장 성공!\n이름: " + name);
-
+            // ✅ 실제 구글 이름, 이메일 저장
             UserInIt.init(name, email);
             dispose();
             new MainWindow("온라인 서점", 0, 0, 1000, 750);
